@@ -1,7 +1,8 @@
 ## Compose Papers
 Sample project to demo usage of Coil image loading library in an Android Project.
 
-Will update the project as I get more time.
+- get your own api key from unsplash and copy it in local.properties file
+- Will update the project as I get more time.
 
 ## There are some known issues with recomposition
 
