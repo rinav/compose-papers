@@ -2,6 +2,7 @@ package dev.rinav.composepapers.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.fold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.rinav.composepapers.domain.models.PaperImage
 import dev.rinav.composepapers.domain.repository.ImageRepository
@@ -16,21 +17,24 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val imageRepository: ImageRepository
-): ViewModel() {
+) : ViewModel() {
 
     //val homeImages: MutableState<List<PaperImage>> = mutableStateOf (emptyList())
     val homeImages: StateFlow<List<PaperImage>> = imageRepository
         .getImages()
         .map { result ->
-            if (result.isOk) {
-                result.value.forEach { image ->
-                    Timber.d("images: ${image.id} :: ${image.photographerName} :: ${image.imageUrlRegular}")
+            result.fold(
+                success = { papers ->
+                    papers.forEach { image ->
+                        Timber.d("images: ${image.id} :: ${image.photographerName} :: ${image.imageUrlRegular}")
+                    }
+                    return@fold papers
+                },
+                failure = {
+                    Timber.e("error in getting home images: $it")
+                    return@fold emptyList<PaperImage>()
                 }
-              result.value
-            } else {
-                Timber.e("error in getting home images: ${result.error}")
-                emptyList()
-            }
+            )
         }
         .catch { exception ->
             Timber.d(exception, "error in getting images from repository")
